@@ -11,5 +11,10 @@ if __name__ == "__main__":
     open_button = tk.Button(root, text="Apri file CSV", command=open_csv_file)
     open_button.pack(padx=20, pady=20)
 
+    # Aggiungi un Checkbutton per selezionare l'utilizzo di Helium 10 e Keepa
+    use_helium_keepa = tk.BooleanVar()
+    helium_keepa_checkbox = tk.Checkbutton(root, text="Usa Helium 10 e Keepa", variable=use_helium_keepa)
+    helium_keepa_checkbox.pack(pady=10)
+
     # Avvia il loop principale dell'interfaccia grafica
     root.mainloop()

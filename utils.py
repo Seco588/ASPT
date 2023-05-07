@@ -5,7 +5,6 @@ import os
 
 # Funzione per salvare i dati del prodotto in un file Excel
 
-
 def save_to_excel(product_data, output_folder):
     file_path = f"{output_folder}/amazon_products.xlsx"
 
@@ -21,7 +20,19 @@ def save_to_excel(product_data, output_folder):
     # Scrivi i dati del prodotto nel foglio di lavoro
     new_row = [product_data["asin"], product_data["title"],
                product_data["price"], product_data["rating"], 
-               product_data["reviews"],product_data["sales_rank"]]
+               product_data["reviews"], product_data["sales_rank"]]
+
+    # Aggiungi i dati di Helium 10 e Keepa se disponibili
+    if "helium_data" in product_data:
+        new_row.append(product_data["helium_data"])
+    else:
+        new_row.append("Dati Helium non disponibili")
+
+    if "keepa_price" in product_data:
+        new_row.append(product_data["keepa_price"])
+    else:
+        new_row.append("Prezzo Keepa non disponibile")
+
     sheet.append(new_row)
 
     # Salva il file Excel
@@ -41,7 +52,9 @@ def change_ip():
     # Disconnetti da NordVPN (se connesso)
     print("Disconnessione da NordVPN...")
     subprocess.run(["nordvpn", "disconnect"], check=True)
+    time.sleep(5)
 
     # Connetti a NordVPN con un nuovo IP
     print("Connessione a NordVPN con un nuovo IP...")
     subprocess.run(["nordvpn", "connect"], check=True)
+
