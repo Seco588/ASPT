@@ -118,7 +118,7 @@ def scrape_amazon(asin):
 # Funzione per leggere il file CSV e avviare lo scraping
 # La funzione read_csv_and_scrape accetta ora un parametro aggiuntivo output_folder, che è impostato su None come valore predefinito.
 #  Se output_folder viene passato alla funzione, i dati vengono salvati in un file Excel e viene aggiunto un intervallo di tempo di 60 secondi tra le richieste.
-def read_csv_and_scrape(file_path, output_folder=None):
+def read_csv_and_scrape(file_path, output_folder=None, use_helium_keepa=False):
     asin_counter = 0
     with open(file_path, "r") as csvfile:
         reader = csv.reader(csvfile)
@@ -130,7 +130,7 @@ def read_csv_and_scrape(file_path, output_folder=None):
                 if asin_counter % 3 == 0:
                     change_ip()
 
-                if use_helium_keepa.get():
+                if use_helium_keepa:
                     product_data = scrape_amazon_helium_keepa(asin_or_ean)
                 else:
                     product_data = scrape_amazon(asin_or_ean)
