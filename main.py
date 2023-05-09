@@ -1,13 +1,13 @@
-import gui 
+from gui import init_gui 
 import scraper
 import utils 
 
 def main():
     # Inizializza l'interfaccia grafica
-    app = gui.init_gui()
+    app = init_gui()
 
     # Inizializza l'intelligenza artificiale (se necessario)
-    if gui.use_ai():
+    if app.use_ai():  # Usa 'app' al posto di 'gui'
         import ai
         ai.init_ai(api_key='your_api_key')
 
