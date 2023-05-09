@@ -1,144 +1,157 @@
-# scraper.py: conterrà il codice per lo scraping dei dati da Amazon.
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
 import requests
 from bs4 import BeautifulSoup
-from utils import save_to_excel, change_ip
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
-import time
-import tkinter as tk
-from tkinter import filedialog
 import csv
-import subprocess
+import pandas as pd
 
+def scrape_amazon_page(url, headers):
+    processed_scrape_amazon_page_data = {}
+    try:
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-# Definisco una funzione per estrarre i dati del prodotto da Amazon
-# Configura qui le tue chiavi API per Keepa
-KEEPA_ACCESS_KEY = "your_keepa_access_key"
+        # Esegui lo scraping delle informazioni dalla pagina Amazon qui
+        # ad esempio: titolo, prezzo, descrizione, recensioni, ecc.
+    
+    except Exception as e:
+        log_queue.put(f"Errore durante l'estrazione con Scrape Amazon Page: {str(e)}")
+    return processed_scrape_amazon_page_data
+    
+def scrape_helium10(asin_or_ean, log_queue):
+    extracted_data = {}
+    try:
+        # Codice per effettuare lo scraping con Helium10 (usando Selenium)
+        # Configura Selenium per utilizzare l'estensione Helium10
+        chrome_options = Options()
+        chrome_options.add_extension("path/to/helium10_chrome_extension.crx")
+        driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
 
-def scrape_amazon_helium_keepa(asin):
-    # Aggiungi qui la chiamata a change_ip() se necessario
-    # change_ip()
+        # Apri la pagina Amazon corrispondente all'ASIN o EAN
+        url = f"https://www.amazon.com/dp/{asin_or_ean}"
+        driver.get(url)
 
-    # 1. Utilizza Selenium per interagire con Helium 10
-    # ...
-    # 1. Utilizza Selenium per interagire con Helium 10
-    chrome_options = Options()
-    chrome_options.add_extension("/home/user/helium_10_extension.crx")
-    chrome_options.add_argument("user-data-dir=/home/user/chrome/profile")
+        # Aspetta che l'estensione Helium10 aggiunga le informazioni alla pagina
+        time.sleep(10)  # Aumenta il tempo di attesa se necessario
 
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+        # Esegui lo scraping delle informazioni aggiunte da Helium10
+        # ad esempio: grafici, valutazioni, ecc.
 
-    url = f"https://www.amazon.it/dp/{asin}"
-    driver.get(url)
+        # Chiudi il browser e restituisci i dati estratti
+        driver.quit()
+    except Exception as e:
+        log_queue.put(f"Errore durante l'estrazione con Helium10: {str(e)}")
+    return extracted_data
+    
+def scrape_keepa(asin_or_ean, api_key):
+    processed_keepa_data = {}
+    try:
+        # Codice per effettuare lo scraping con Keepa
+        # Costruisci la richiesta all'API di Keepa e ottieni i dati
+        # Consulta la documentazione di Keepa per ulteriori dettagli
+        url = f"https://api.keepa.com/product?key={api_key}&domain=1&asin={asin_or_ean}"
+        response = requests.get(url)
+        keepa_data = response.json()
 
-    # Fai il login su Helium 10, se necessario
+        # Elabora i dati di Keepa come necessario
+        # ad esempio: prezzo, classifica, ecc.
+    except Exception as e:
+        log_queue.put(f"Errore durante l'estrazione con Keepa: {str(e)}")
+    return processed_keepa_data
+    
 
-    # Utilizza i metodi di Selenium per interagire con la pagina e recuperare i dati desiderati
-    # Nota: dovrai identificare gli elementi HTML e i selettori CSS appropriati per estrarre i dati da Helium 10
+def scrape_junglescout(asin_or_ean, api_key):
+    processed_junglescout_data = {}
+    try:
+        # Codice per effettuare lo scraping con JungleScout
+        # Costruisci la richiesta all'API di JungleScout e ottieni i dati
+        # Consulta la documentazione di JungleScout per ulteriori dettagli
+        headers = {"Authorization": f"Bearer {api_key}"}
+        url = f"https://api.junglescout.com/asin/{asin_or_ean}"
+        response = requests.get(url, headers=headers)
+        junglescout_data = response.json()
 
-    # Esempio:
-    # helium_data_element = driver.find_element_by_css_selector("your_css_selector_here")
-    # helium_data = helium_data_element.text
+        # Elabora i dati di JungleScout come necessario
+        # ad esempio: vendite mensili, fatturato mensile, ecc.
+    except Exception as e:
+        log_queue.put(f"Errore durante l'estrazione con JungleScout: {str(e)}")
+    return processed_junglescout_data
+    
+def scrape_ai(asin_or_ean):
+    processed_ai_data = {}
+    try:
+        # Inserisci qui il codice esistente per l'estrazione con l'IA
+        # Codice per utilizzare AI per migliorare lo scraping
+        openai.api_key = api_key
 
-    helium_data_element = driver.find_element_by_css_selector("your_css_selector_here")
-    helium_data = helium_data_element.text
+        response = openai.Completion.create(
+            engine="davinci-codex",
+            prompt=prompt,
+            max_tokens=100,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
 
+        # Elabora i dati ottenuti dall'IA e aggiungi le informazioni rilevanti a processed_ai_data
+        # Ad esempio, si potrebbe estrarre informazioni sul prodotto o suggerimenti sulla sua popolarità
+    except Exception as e:
+        log_queue.put(f"Errore durante l'estrazione con l'IA: {str(e)}")
+    return processed_ai_data
 
-    driver.quit()
+def do_scraping(params, log_queue):
+    asin_or_ean_list = []
+    try:
+        # Leggi gli ASIN o EAN dal file CSV
+        with open(params["csv_file"], 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader:
+                asin_or_ean_list.extend(row)  # Aggiungi tutti gli elementi separati da "," alla lista
 
-    # 2. Recupera i dati tramite l'API di Keepa
-    keepa_url = f"https://api.keepa.com/product?key={KEEPA_ACCESS_KEY}&domain=8&asin={asin}"
-    keepa_response = requests.get(keepa_url)
-    keepa_data = keepa_response.json()
+    except Exception as e:
+        log_queue.put(f"Errore durante la lettura del file CSV: {str(e)}")
+        return
 
-    # Estrai i dati di interesse dall'API di Keepa
-    # Nota: dovrai analizzare la struttura dei dati JSON restituiti dall'API per estrarre le informazioni desiderate
+    # Crea un oggetto ExcelWriter per salvare i risultati in un file Excel
+    writer = pd.ExcelWriter("output.xlsx", engine='xlsxwriter')
 
-    # Esempio:
-    # keepa_price = keepa_data["your_key_here"]
+    for index, asin_or_ean in enumerate(asin_or_ean_list):
+        extracted_data = []
 
-    # 3. Effettua lo scraping su Amazon per ottenere ulteriori informazioni
-    amazon_data = scrape_amazon(asin)
+        if params["change_ip_enabled"] and index % params["change_ip_every"] == 0:
+            change_ip()
 
-    # Combina i dati raccolti da Helium 10, Keepa e Amazon
-    combined_data = {
-        "asin": asin,
-        # "helium_data": helium_data,
-        # "keepa_price": keepa_price,
-        **amazon_data
-    }
+        if params["tools"]["helium10"]:
+            extracted_data = scrape_with_helium10(asin_or_ean, log_queue)
 
-    return combined_data
+        if params["tools"]["keepa"]:
+            keepa_data = get_keepa_data(asin_or_ean, params["api_keys"]["keepa"])
+            extracted_data.update(keepa_data)
 
-def scrape_amazon(asin):
-    url = f"https://www.amazon.it/dp/{asin}"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.82 Safari/537.36",
-        "Accept-Language": "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3",
-    }
+        if params["tools"]["junglescout"]:
+            junglescout_data = get_junglescout_data(asin_or_ean, params["api_keys"]["junglescout"])
+            extracted_data.update(junglescout_data)
 
-    response = requests.get(url, headers=headers)
+        if params["tools"]["ai"]:
+            prompt = f"[AI] -> Informazioni sul prodotto ASIN/EAN {asin_ean} su Amazon"
+            ai_data = get_ai_data(asin_ean, params["api_keys"]["openai"], prompt)
+            extracted_data.update(ai_data)
 
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, "html.parser")
+        # Esegui lo scraping delle pagine Amazon e salva i risultati in un DataFrame
+        url = f"https://www.amazon.com/dp/{asin_or_ean}"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
+        }
 
-        # Estrai il titolo del prodotto
-        title_element = soup.find("span", {"id": "productTitle"})
-        title = title_element.get_text().strip() if title_element else "Titolo non trovato"
+        # Aggiungi le informazioni estratte con scraping
+        extracted_data = scrape_amazon_page(url, headers)
 
-        # Estrai il prezzo del prodotto
-        price_element = soup.find("span", {"id": "priceblock_ourprice"})
-        price = price_element.get_text().strip() if price_element else "Prezzo non trovato"
+        # Invia messaggi di log alla coda per aggiornare la GUI
+        log_queue.put(f"Scraped data for {asin_or_ean}")
 
-        # Estrai la valutazione media
-        rating_element = soup.find("span", {"class": "a-icon-alt"})
-        rating = rating_element.get_text().strip() if rating_element else "Valutazione non trovata"
+        # Salva i risultati in un DataFrame e aggiungi il DataFrame come foglio nel file Excel
+        df = pd.DataFrame(extracted_data)
+        df.to_excel(writer, sheet_name=f"{asin_or_ean}", index=False)
 
-        # Estrai il numero di recensioni
-        reviews_element = soup.find("span", {"id": "acrCustomerReviewText"})
-        reviews = reviews_element.get_text().strip() if reviews_element else "Recensioni non trovate"
-
-        # Estrai il Sales Rank
-        sales_rank_element = soup.find("span", {"id": "SalesRank"})
-        if sales_rank_element:
-            sales_rank = sales_rank_element.get_text().strip()
-            # Rimuovi eventuali caratteri non numerici nel Sales Rank
-            sales_rank = ''.join(filter(str.isdigit, sales_rank))
-        else:
-            sales_rank = "Sales Rank non trovato"
-
-        return {"asin": asin, "title": title, "price": price, "rating": rating, "reviews": reviews, "sales_rank": sales_rank}
-    else:
-        print(f"Errore nella richiesta: {response.status_code}")
-        return None
-
-# Funzione per leggere il file CSV e avviare lo scraping
-# La funzione read_csv_and_scrape accetta ora un parametro aggiuntivo output_folder, che è impostato su None come valore predefinito.
-#  Se output_folder viene passato alla funzione, i dati vengono salvati in un file Excel e viene aggiunto un intervallo di tempo di 60 secondi tra le richieste.
-def read_csv_and_scrape(file_path, output_folder=None, use_helium_keepa=False):
-    asin_counter = 0
-    with open(file_path, "r") as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader:
-            for asin_or_ean in row:  # Itera su tutti gli elementi in ogni riga
-                print(f"Scraping {asin_or_ean}...")
-                asin_counter += 1
-
-                if asin_counter % 3 == 0:
-                    change_ip()
-
-                if use_helium_keepa:
-                    product_data = scrape_amazon_helium_keepa(asin_or_ean)
-                else:
-                    product_data = scrape_amazon(asin_or_ean)
-
-                if product_data:
-                    print(product_data)
-                    
-                    if output_folder:
-                        save_to_excel(product_data, output_folder)  # Salva i dati del prodotto in un file Excel
-                        time.sleep(60)  # Attendi 60 secondi (1 minuto) tra le richieste
-
+    # Salva il file Excel con tutti i fogli
+    writer.save()

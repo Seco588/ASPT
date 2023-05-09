@@ -1,60 +1,36 @@
-# utils.py: conterrà funzioni di utilità come il salvataggio dei dati in un file Excel e il cambio IP.
-import subprocess
-import xlsxwriter
-import os
+import requests
+import json
 
-# Funzione per salvare i dati del prodotto in un file Excel
+def write_log(log_data, log_file='logs.json'):
+    with open(log_file, 'a') as file:
+        json.dump(log_data, file)
 
-def save_to_excel(product_data, output_folder):
-    file_path = f"{output_folder}/amazon_products.xlsx"
-
-    # Crea un nuovo file Excel se non esiste
-    if not os.path.exists(file_path):
-        workbook = Workbook()
-        workbook.save(file_path)
-
-    # Apri il file Excel e seleziona il foglio di lavoro
-    workbook = openpyxl.load_workbook(file_path)
-    sheet = workbook.active
-
-    # Scrivi i dati del prodotto nel foglio di lavoro
-    new_row = [product_data["asin"], product_data["title"],
-               product_data["price"], product_data["rating"], 
-               product_data["reviews"], product_data["sales_rank"]]
-
-    # Aggiungi i dati di Helium 10 e Keepa se disponibili
-    if "helium_data" in product_data:
-        new_row.append(product_data["helium_data"])
-    else:
-        new_row.append("Dati Helium non disponibili")
-
-    if "keepa_price" in product_data:
-        new_row.append(product_data["keepa_price"])
-    else:
-        new_row.append("Prezzo Keepa non disponibile")
-
-    sheet.append(new_row)
-
-    # Salva il file Excel
-    workbook.save(file_path)
-
-# Funzione per cambiare IP con NordVPN ogni 3 EAN/ASIN inviati verso Amazon
-
+def read_log(log_file='logs.json'):
+    with open(log_file, 'r') as file:
+        log_data = json.load(file)
+    return log_data
 
 def change_ip():
-    # Assicurarsi che il comando 'nordvpn' sia disponibile nel sistema
+    # Codice per connettersi a NordVPN e cambiare l'IP
+    # Assicurati di avere NordVPN e la sua CLI (Command Line Interface) installata sul tuo computer e di essere connesso con il tuo account NordVPN. 
+    # Per ulteriori dettagli su come utilizzare la CLI di NordVPN, consulta la documentazione ufficiale: https://support.nordvpn.com/Connectivity/Linux/1325531132/Installing-and-using-NordVPN-on-Linux.htm
+    
+    # Disconnetti da NordVPN, se connesso
     try:
-        subprocess.run(["nordvpn", "--version"], check=True)
-    except FileNotFoundError:
-        print("Errore: NordVPN non è installato sul sistema.")
-        return
-
-    # Disconnetti da NordVPN (se connesso)
-    print("Disconnessione da NordVPN...")
-    subprocess.run(["nordvpn", "disconnect"], check=True)
-    time.sleep(5)
-
-    # Connetti a NordVPN con un nuovo IP
-    print("Connessione a NordVPN con un nuovo IP...")
-    subprocess.run(["nordvpn", "connect"], check=True)
-
+        subprocess.run(["nordvpn", "disconnect"], check=True, timeout=10)
+    except subprocess.CalledProcessError:
+        print("Errore durante la disconnessione da NordVPN.")
+    except subprocess.TimeoutExpired:
+        print("Timeout scaduto durante la disconnessione da NordVPN.")
+    
+    # Connettiti a NordVPN con il protocollo di connessione rapida
+    try:
+        result = subprocess.run(["nordvpn", "connect"], check=True, timeout=30)
+        if result.returncode == 0:
+            print("Connesso a NordVPN.")
+        else:
+            print("Errore durante la connessione a NordVPN.")
+    except subprocess.CalledProcessError:
+        print("Errore durante la connessione a NordVPN.")
+    except subprocess.TimeoutExpired:
+        print("Timeout scaduto durante la connessione a NordVPN.")
