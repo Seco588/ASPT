@@ -22,7 +22,7 @@
 <p>Per avviare l'applicazione, esegui il seguente comando nella directory del progetto:</p>
 <pre class=""><div class="bg-black rounded-md mb-4"><div class="flex items-center relative text-gray-200 bg-gray-800 px-4 py-2 text-xs font-sans justify-between rounded-t-md">
 </div>
-<div class="p-4 overflow-y-auto"><code class="!whitespace-pre hljs language-css">python</code>
+<div class="p-4 overflow-y-auto"><code class="!whitespace-pre hljs language-css">python main.py</code>
 </div>
 </div>
 </pre>
