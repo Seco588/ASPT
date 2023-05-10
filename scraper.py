@@ -154,4 +154,4 @@ def do_scraping(params, log_queue):
         df.to_excel(writer, sheet_name=f"{asin_or_ean}", index=False)
 
     # Salva il file Excel con tutti i fogli
-    writer.save()
+    writer.close()

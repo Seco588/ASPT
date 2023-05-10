@@ -1,4 +1,4 @@
-import tkinter as tk
+gui.py -> import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
 import threading
@@ -14,7 +14,7 @@ class ASPTApp(tk.Tk):
         super().__init__()
 
         self.title("ASPT - Amazon Scraping Project Tool")
-        self.geometry("750x800")
+        self.geometry("600x400")
 
         # Inizializza i widget
         self.init_widgets()
@@ -145,8 +145,7 @@ class ASPTApp(tk.Tk):
        fig = ASPTApp.draw_chart(chart_data, chart_title, x_label, y_label)  # Modifica questa riga
        canvas = FigureCanvasTkAgg(fig, master=self)
        canvas.draw()
-       canvas.get_tk_widget().grid(row=6, column=0, columnspan=4, sticky=tk.W+tk.E+tk.N+tk.S)
-
+       canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 
 
@@ -155,4 +154,72 @@ def init_gui():
     app = ASPTApp()
     app.add_chart_to_dashboard()  # Aggiungi questa riga per aggiungere il grafico alla dashboard
     app.update_logs()
-    return app
+    return app                                                                                                                                                                                              main.py -> from gui import init_gui 
+import scraper
+import utils 
+import subprocess
+import sys
+import tkinter.messagebox as messagebox
+import os
+
+def check_and_install_requirements():
+    with open("requirements.txt", "r") as file:
+        requirements = file.read().splitlines()
+
+    missing_requirements = []
+    for requirement in requirements:
+        try:
+            subprocess.check_output([sys.executable, "-m", "pip", "show", requirement], stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError as e:
+            print(f"Errore per la dipendenza {requirement}: {e}")
+            missing_requirements.append(requirement)
+
+    if missing_requirements:
+        message = "Le seguenti dipendenze sono mancanti:\n\n" + "\n".join(missing_requirements) + "\n\nVuoi installarle?"
+        answer = messagebox.askyesno("Dipendenze mancanti", message)
+
+        if answer:
+            if os.name == 'nt':  # Windows
+                for requirement in missing_requirements:
+                    subprocess.check_call(["powershell", "Start-Process", "pip", "-ArgumentList", "'install', '{}', '--user'".format(requirement), "-Verb", "RunAs"])
+            else:  # Linux/macOS
+                for requirement in missing_requirements:
+                    subprocess.check_call(["sudo", sys.executable, "-m", "pip", "install", requirement])
+        else:
+            sys.exit(0)
+
+def main():
+    # Controlla e installa dipendenze
+    #check_and_install_requirements()
+    # Inizializza l'interfaccia grafica
+    app = init_gui()
+
+    # Inizializza l'intelligenza artificiale (se necessario)
+    if app.use_ai():  # Usa 'app' al posto di 'gui'
+        import ai
+        ai.init_ai(api_key='your_api_key')
+
+    # Avvia l'applicazione
+    app.mainloop()
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+errore -> PS C:\Users\588se\Documents\NetBeansProjects\Aspt> python main.py
+Traceback (most recent call last):
+  File "C:\Users\588se\Documents\NetBeansProjects\Aspt\main.py", line 50, in <module>
+    main()
+  File "C:\Users\588se\Documents\NetBeansProjects\Aspt\main.py", line 39, in main
+    app = init_gui()
+          ^^^^^^^^^^
+  File "C:\Users\588se\Documents\NetBeansProjects\Aspt\gui.py", line 155, in init_gui
+    app.add_chart_to_dashboard()  # Aggiungi questa riga per aggiungere il grafico alla dashboard 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\588se\Documents\NetBeansProjects\Aspt\gui.py", line 148, in add_chart_to_dashboard
+    canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+  File "C:\Users\588se\AppData\Local\Programs\Python\Python311\Lib\tkinter\__init__.py", line 2452, in pack_configure
+    self.tk.call(
+_tkinter.TclError: cannot use geometry manager pack inside . which already has slaves managed by grid
